@@ -2200,8 +2200,9 @@
           gsap.from(el, { scale: .85, opacity: 0, duration: .8, ease: 'back.out(1.4)' });
           container.addEventListener('click', e => { e.stopPropagation(); openLightbox(isVid ? 'video' : 'img', el.src); });
         };
-        if (isVid) { el.onloadeddata = onSuccess; } else { el.onload = onSuccess; }
+        if (isVid) { el.preload = 'metadata'; el.onloadedmetadata = onSuccess; } else { el.onload = onSuccess; }
         el.src = filePath;
+        if (isVid) el.load();
       });
     }
 
