@@ -1,0 +1,2282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Imole — Happy Birthday Maria</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Montserrat:wght@200;300;400&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --midnight: #07061a;
+      --plum: #110d1e;
+      --gold: #c9a96e;
+      --gold2: #e8c27a;
+      --blush: #e8c4b8;
+      --rose: #d4748a;
+      --white: #f5f0eb;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--midnight);
+      color: var(--white);
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 200;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ── CURSOR ── */
+    #cur {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      background: var(--gold);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 10px var(--gold), 0 0 22px rgba(201, 169, 110, .4);
+    }
+
+    #curt {
+      position: fixed;
+      width: 30px;
+      height: 30px;
+      border: 1px solid rgba(201, 169, 110, .35);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: all .12s ease;
+    }
+
+    /* ── GLOBAL BACKGROUND CANVAS ── */
+    /* Fixed behind everything — Three.js particle constellation */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* The 2D line canvas injected by JS sits at z-index 0 too */
+
+    /* ── HERO CANVAS (absolute within hero only) ── */
+    #canvas-hero {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    section {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 1.6rem 4vw;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 100;
+    }
+
+    nav::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(6, 6, 15, .88), transparent);
+      pointer-events: none;
+    }
+
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-style: italic;
+      color: var(--gold);
+      position: relative;
+      z-index: 1;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.2rem;
+      list-style: none;
+      position: relative;
+      z-index: 1;
+    }
+
+    .nav-links a {
+      font-size: .58rem;
+      letter-spacing: .32em;
+      text-transform: uppercase;
+      color: rgba(245, 240, 235, .38);
+      text-decoration: none;
+      transition: color .3s;
+    }
+
+    .nav-links a:hover {
+      color: var(--gold);
+    }
+
+    /* Burger */
+    .nav-burger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      position: relative;
+      z-index: 101;
+    }
+
+    .nav-burger span {
+      display: block;
+      width: 22px;
+      height: 1px;
+      background: var(--gold);
+      transition: all .3s ease;
+    }
+
+    .nav-burger.open span:nth-child(1) {
+      transform: translateY(6px) rotate(45deg);
+    }
+
+    .nav-burger.open span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .nav-burger.open span:nth-child(3) {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+
+    /* ── HERO ── */
+    #hero {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-top {
+      font-size: .62rem;
+      letter-spacing: .45em;
+      text-transform: uppercase;
+      color: var(--gold);
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-birthday {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1rem, 3vw, 1.8rem);
+      font-style: italic;
+      color: var(--blush);
+      letter-spacing: .2em;
+      margin-top: .6rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(5.5rem, 18vw, 14rem);
+      font-weight: 400;
+      font-style: italic;
+      line-height: .88;
+      background: linear-gradient(135deg, #fff8ef 0%, var(--gold2) 40%, var(--blush) 75%, var(--rose) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 40px rgba(201, 169, 110, .22));
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-imole {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1rem, 3.2vw, 2rem);
+      font-style: italic;
+      color: rgba(232, 196, 184, .6);
+      letter-spacing: .25em;
+      margin-top: .7rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-year {
+      font-size: .58rem;
+      letter-spacing: .45em;
+      text-transform: uppercase;
+      color: rgba(201, 169, 110, .42);
+      margin-top: 1.6rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-divider {
+      width: 1px;
+      height: 52px;
+      background: linear-gradient(to bottom, transparent, var(--gold), transparent);
+      margin: 2rem auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-scroll-hint {
+      font-size: .58rem;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: rgba(245, 240, 235, .28);
+      position: relative;
+      z-index: 2;
+    }
+
+    .scroll-bar {
+      width: 1px;
+      height: 42px;
+      background: linear-gradient(to bottom, var(--gold), transparent);
+      margin: .6rem auto 0;
+      animation: scrollPulse 2s ease-in-out infinite;
+      position: relative;
+      z-index: 2;
+    }
+
+    .bulb-hint {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: .52rem;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+      color: rgba(201, 169, 110, .28);
+      white-space: nowrap;
+      z-index: 2;
+    }
+
+    /* ── CHAPTERS ── */
+    /* KEY FIX: no min-height:100vh → no massive black gaps */
+    .chapter {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 5rem 8vw;
+      gap: 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chapter-number {
+      font-size: .6rem;
+      letter-spacing: .4em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+    }
+
+    .chapter-number::after {
+      content: '';
+      flex: 1;
+      max-width: 36px;
+      height: 1px;
+      background: var(--gold);
+      opacity: .35;
+    }
+
+    .chapter-date {
+      font-size: .58rem;
+      letter-spacing: .28em;
+      color: rgba(245, 240, 235, .28);
+      text-transform: uppercase;
+      margin-bottom: .9rem;
+    }
+
+    .chapter-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 3.8vw, 3.2rem);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.18;
+      color: var(--white);
+      margin-bottom: 1.6rem;
+    }
+
+    .chapter-body {
+      font-size: .82rem;
+      line-height: 2.05;
+      color: rgba(245, 240, 235, .5);
+      max-width: 380px;
+    }
+
+    .chapter-media {
+      position: relative;
+      aspect-ratio: 4/5;
+      border-radius: 2px;
+      overflow: hidden;
+      background: var(--plum);
+    }
+
+    .media-upload-zone {
+      width: 100%;
+      height: 100%;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: .8rem;
+      background: linear-gradient(135deg, #110d1e, #1a1228);
+      border: 1px solid rgba(201, 169, 110, .1);
+      cursor: pointer;
+      transition: border-color .4s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .media-upload-zone:hover {
+      border-color: rgba(201, 169, 110, .28);
+    }
+
+    .uz-icon {
+      font-size: 1.6rem;
+      opacity: .22;
+      transition: opacity .3s;
+    }
+
+    .media-upload-zone:hover .uz-icon {
+      opacity: .48;
+    }
+
+    .uz-label {
+      font-size: .58rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: rgba(201, 169, 110, .32);
+    }
+
+    .chapter-media img,
+    .chapter-media video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .media-glow {
+      position: absolute;
+      inset: -1px;
+      pointer-events: none;
+      border-radius: 2px;
+      box-shadow: 0 0 50px rgba(201, 169, 110, .07), 0 0 100px rgba(201, 169, 110, .03);
+    }
+
+    /* ── TIMELINE ── */
+    #timeline {
+      padding: 7rem 8vw;
+      position: relative;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 5rem;
+    }
+
+    .section-eyebrow {
+      font-size: .58rem;
+      letter-spacing: .45em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.2rem, 5vw, 4.2rem);
+      font-weight: 300;
+      font-style: italic;
+      background: linear-gradient(135deg, var(--white), var(--blush));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .timeline-track {
+      position: relative;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .timeline-line {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, var(--gold), rgba(201, 169, 110, .25), var(--rose), transparent);
+      transform: translateX(-50%);
+    }
+
+    .tl-item {
+      display: grid;
+      grid-template-columns: 1fr 56px 1fr;
+      margin-bottom: 3.5rem;
+      align-items: center;
+    }
+
+    .tl-item:nth-child(odd) .tl-content {
+      grid-column: 1;
+      text-align: right;
+    }
+
+    .tl-item:nth-child(odd) .tl-empty {
+      grid-column: 3;
+    }
+
+    .tl-item:nth-child(even) .tl-content {
+      grid-column: 3;
+      text-align: left;
+    }
+
+    .tl-item:nth-child(even) .tl-empty {
+      grid-column: 1;
+    }
+
+    .tl-node {
+      grid-column: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .tl-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: var(--gold);
+      cursor: pointer;
+      box-shadow: 0 0 0 3px rgba(201, 169, 110, .12), 0 0 18px rgba(201, 169, 110, .35);
+      transition: all .3s;
+    }
+
+    .tl-dot:hover {
+      transform: scale(1.65);
+      box-shadow: 0 0 0 7px rgba(201, 169, 110, .08), 0 0 28px rgba(201, 169, 110, .55);
+    }
+
+    .tl-date {
+      font-size: .56rem;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: .32rem;
+    }
+
+    .tl-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--white);
+      margin-bottom: .32rem;
+    }
+
+    .tl-desc {
+      font-size: .7rem;
+      line-height: 1.85;
+      color: rgba(245, 240, 235, .37);
+    }
+
+    /* ── GALLERY ── */
+    #gallery {
+      padding: 7rem 4vw;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-auto-rows: 260px;
+      gap: .6rem;
+      margin-top: 3.5rem;
+    }
+
+    /* Desktop masonry spans */
+    .g-item:nth-child(4n+1) {
+      grid-row: span 2;
+    }
+
+    .g-item:nth-child(7n+3) {
+      grid-column: span 2;
+    }
+
+    .g-item {
+      position: relative;
+      overflow: hidden;
+      background: var(--plum);
+      border: 1px solid rgba(201, 169, 110, .07);
+      cursor: pointer;
+    }
+
+    .g-inner {
+      width: 100%;
+      height: 100%;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: linear-gradient(135deg, #0e0b18, #12101e);
+      transition: transform .6s cubic-bezier(.25, .46, .45, .94);
+      overflow: hidden;
+    }
+
+    .g-item:hover .g-inner {
+      transform: scale(1.04);
+    }
+
+    .g-upload-icon {
+      font-size: 1.3rem;
+      opacity: .2;
+      margin-bottom: .4rem;
+    }
+
+    .g-upload-text {
+      font-size: .52rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: rgba(201, 169, 110, .28);
+    }
+
+    .g-inner img,
+    .g-inner video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .g-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(6, 6, 15, .75) 0%, transparent 55%);
+      opacity: 0;
+      transition: opacity .35s;
+      display: flex;
+      align-items: flex-end;
+      padding: 1rem;
+      z-index: 2;
+    }
+
+    .g-item:hover .g-overlay {
+      opacity: 1;
+    }
+
+    .g-caption {
+      font-size: .6rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .vid-badge {
+      position: absolute;
+      top: .65rem;
+      right: .65rem;
+      z-index: 4;
+      width: 26px;
+      height: 26px;
+      background: rgba(6, 6, 15, .72);
+      border: 1px solid rgba(201, 169, 110, .3);
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: .65rem;
+      color: var(--gold);
+    }
+
+    /* ── LETTER ── */
+    #letter {
+      padding: 8rem 8vw;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      position: relative;
+    }
+
+    #letter-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .letter-paper {
+      max-width: 660px;
+      width: 100%;
+      position: relative;
+      z-index: 2;
+      padding: 5rem 4.5rem;
+      background: linear-gradient(135deg, rgba(14, 11, 24, .97), rgba(18, 16, 30, .97));
+      border: 1px solid rgba(201, 169, 110, .14);
+      box-shadow: 0 0 80px rgba(201, 169, 110, .05), 0 40px 80px rgba(0, 0, 0, .45);
+    }
+
+    .wax-seal {
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 44px;
+      height: 44px;
+      background: radial-gradient(circle at 40% 35%, #e8839a, #8b2a42);
+      border-radius: 50%;
+      box-shadow: 0 0 18px rgba(212, 116, 138, .5), 0 4px 10px rgba(0, 0, 0, .4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    .letter-greeting {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.7rem;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--gold);
+      margin-bottom: 2.2rem;
+      margin-top: .8rem;
+    }
+
+    .letter-body {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      font-weight: 300;
+      line-height: 2.05;
+      color: rgba(245, 240, 235, .72);
+      font-style: italic;
+    }
+
+    .letter-body p {
+      margin-bottom: 1.4rem;
+    }
+
+    .letter-signature {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      font-style: italic;
+      color: var(--gold);
+      margin-top: 2.2rem;
+      text-align: right;
+    }
+
+    .letter-date {
+      font-size: .58rem;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+      color: rgba(245, 240, 235, .18);
+      text-align: right;
+      margin-top: .4rem;
+    }
+
+    /* ── GIFT ── */
+    #gift {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 4vw;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #gift-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .gift-eyebrow {
+      font-size: .6rem;
+      letter-spacing: .45em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .gift-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 300;
+      font-style: italic;
+      background: linear-gradient(135deg, var(--white), var(--gold), var(--blush));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .gift-sub {
+      font-size: .72rem;
+      letter-spacing: .2em;
+      color: rgba(245, 240, 235, .3);
+      margin-bottom: 3.5rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .gift-box-wrap {
+      position: relative;
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    .gift-box {
+      width: 160px;
+      height: 160px;
+      transition: transform .5s cubic-bezier(.34, 1.56, .64, 1);
+      filter: drop-shadow(0 0 18px rgba(201, 169, 110, .15));
+    }
+
+    .gift-box-wrap:hover .gift-box {
+      transform: translateY(-14px) scale(1.07);
+      filter: drop-shadow(0 0 45px rgba(201, 169, 110, .55));
+    }
+
+    .gift-box svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .gift-click-hint {
+      font-size: .58rem;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: rgba(201, 169, 110, .35);
+      margin-top: 1.2rem;
+      animation: breathe 2.5s ease-in-out infinite;
+    }
+
+    .gift-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 6, 15, .96);
+      z-index: 10001;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 3rem;
+      backdrop-filter: blur(24px);
+    }
+
+    .gift-modal.open {
+      display: flex;
+    }
+
+    .gift-modal-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.5rem, 6vw, 5.5rem);
+      font-weight: 300;
+      font-style: italic;
+      background: linear-gradient(135deg, var(--white), var(--gold2), var(--rose));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+    }
+
+    .gift-modal-msg {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-style: italic;
+      color: rgba(245, 240, 235, .65);
+      max-width: 500px;
+      line-height: 1.9;
+      margin-bottom: 2.5rem;
+    }
+
+    .gift-modal-close {
+      font-size: .6rem;
+      letter-spacing: .35em;
+      text-transform: uppercase;
+      color: rgba(201, 169, 110, .45);
+      background: none;
+      border: 1px solid rgba(201, 169, 110, .25);
+      padding: .7rem 2.5rem;
+      cursor: pointer;
+      transition: all .3s;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 200;
+    }
+
+    .gift-modal-close:hover {
+      color: var(--gold);
+      border-color: var(--gold);
+    }
+
+    /* ── CLOSING ── */
+    #closing {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .closing-pre {
+      font-size: .58rem;
+      letter-spacing: .5em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.8rem;
+      opacity: .7;
+    }
+
+    .closing-main {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.5rem, 7vw, 6rem);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.15;
+      background: linear-gradient(135deg, var(--white) 0%, var(--gold) 40%, var(--blush) 70%, var(--rose) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1.8rem;
+    }
+
+    .closing-sub {
+      font-size: .7rem;
+      letter-spacing: .3em;
+      color: rgba(245, 240, 235, .32);
+      text-transform: uppercase;
+      margin-bottom: 3.5rem;
+    }
+
+    .celebrate-btn {
+      padding: 1rem 3.2rem;
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 300;
+      font-size: .62rem;
+      letter-spacing: .38em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .celebrate-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--gold);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform .4s ease;
+      z-index: -1;
+    }
+
+    .celebrate-btn:hover {
+      color: var(--midnight);
+    }
+
+    .celebrate-btn:hover::before {
+      transform: scaleX(1);
+    }
+
+    /* ── LIGHTBOX ── */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 6, 15, .97);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(20px);
+    }
+
+    .lightbox.open {
+      display: flex;
+    }
+
+    .lightbox-media {
+      max-width: 90vw;
+      max-height: 85vh;
+      object-fit: contain;
+      border: 1px solid rgba(201, 169, 110, .1);
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 1.8rem;
+      right: 2rem;
+      background: none;
+      border: none;
+      color: var(--gold);
+      font-size: 1.2rem;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 200;
+      letter-spacing: .1em;
+      transition: opacity .2s;
+    }
+
+    .lightbox-close:hover {
+      opacity: .4;
+    }
+
+    /* ── REVEALS ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(34px);
+      transition: opacity .95s ease, transform .95s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-d1 {
+      transition-delay: .15s;
+    }
+
+    .reveal-d2 {
+      transition-delay: .3s;
+    }
+
+    /* ── KEYFRAMES ── */
+    @keyframes scrollPulse {
+
+      0%,
+      100% {
+        transform: scaleY(1);
+        opacity: 1
+      }
+
+      50% {
+        transform: scaleY(.6);
+        opacity: .35
+      }
+    }
+
+    @keyframes breathe {
+
+      0%,
+      100% {
+        opacity: .32
+      }
+
+      50% {
+        opacity: .68
+      }
+    }
+
+    @keyframes heartRise {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: .8
+      }
+
+      100% {
+        transform: translateY(-140px) scale(.2);
+        opacity: 0
+      }
+    }
+
+    @keyframes confettiFall {
+      0% {
+        transform: translateY(-20px) rotate(0deg);
+        opacity: 1
+      }
+
+      100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0
+      }
+    }
+
+    .heart-float {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9990;
+      font-size: .8rem;
+      animation: heartRise 2s ease forwards;
+      color: var(--rose);
+    }
+
+    .confetti-piece {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9997;
+      border-radius: 50%;
+      animation: confettiFall linear forwards;
+    }
+
+    /* ══════════════════════════════════════
+       MOBILE
+    ══════════════════════════════════════ */
+    @media(hover:none) {
+
+      #cur,
+      #curt {
+        display: none;
+      }
+
+      body {
+        cursor: auto;
+      }
+    }
+
+    @media(max-width: 640px) {
+      .nav-burger {
+        display: flex;
+      }
+
+      .nav-links {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 65vw;
+        max-width: 260px;
+        flex-direction: column;
+        gap: 0;
+        padding: 5rem 2rem 3rem;
+        background: rgba(6, 6, 15, .97);
+        backdrop-filter: blur(20px);
+        border-left: 1px solid rgba(201, 169, 110, .12);
+        transform: translateX(100%);
+        transition: transform .4s cubic-bezier(.77, 0, .18, 1);
+        z-index: 100;
+      }
+
+      .nav-links.open {
+        transform: translateX(0);
+      }
+
+      .nav-links li {
+        border-bottom: 1px solid rgba(201, 169, 110, .07);
+      }
+
+      .nav-links a {
+        display: block;
+        padding: .9rem 0;
+        font-size: .65rem;
+        letter-spacing: .25em;
+        color: rgba(245, 240, 235, .5);
+      }
+    }
+
+    @media(max-width: 768px) {
+      nav {
+        padding: 1rem 5vw;
+      }
+
+      /* HERO */
+      .hero-name {
+        font-size: clamp(4rem, 22vw, 8rem);
+        line-height: .9;
+      }
+
+      .hero-birthday {
+        font-size: clamp(.9rem, 4vw, 1.4rem);
+      }
+
+      .hero-imole {
+        font-size: clamp(.85rem, 4vw, 1.3rem);
+      }
+
+      .hero-divider {
+        height: 36px;
+        margin: 1.4rem auto;
+      }
+
+      .bulb-hint {
+        font-size: .46rem;
+        bottom: 1.2rem;
+      }
+
+      /* CHAPTERS — tight on mobile, NO min-height gaps */
+      .chapter {
+        grid-template-columns: 1fr;
+        padding: 2.5rem 5vw;
+        gap: 1.4rem;
+      }
+
+      /* On mobile all chapter media comes first (image above text) */
+      .chapter-media {
+        order: -1 !important;
+        aspect-ratio: 16/9;
+      }
+
+      .chapter-title {
+        font-size: clamp(1.5rem, 6vw, 2.2rem);
+      }
+
+      .chapter-body {
+        font-size: .78rem;
+        max-width: 100%;
+      }
+
+      /* TIMELINE */
+      #timeline {
+        padding: 4rem 5vw;
+      }
+
+      .tl-item {
+        grid-template-columns: 1fr 36px;
+      }
+
+      .tl-content {
+        grid-column: 1 !important;
+        text-align: left !important;
+        padding-right: .6rem;
+      }
+
+      .tl-node {
+        grid-column: 2;
+      }
+
+      .tl-empty {
+        display: none;
+      }
+
+      .timeline-line {
+        left: auto;
+        right: 17px;
+        transform: none;
+      }
+
+      .timeline-track {
+        padding-right: 36px;
+      }
+
+      .tl-title {
+        font-size: 1.05rem;
+      }
+
+      .tl-desc {
+        font-size: .66rem;
+      }
+
+      /* GALLERY — KEY FIX: uniform 2-col grid, no span rules, fixed row heights */
+      #gallery {
+        padding: 3.5rem 3vw;
+      }
+
+      .gallery-grid {
+        grid-template-columns: 1fr 1fr;
+        grid-auto-rows: 160px;
+        /* fixed, predictable rows */
+        gap: .4rem;
+      }
+
+      /* Override ALL desktop span rules — everything is 1×1 on mobile */
+      .g-item {
+        grid-row: span 1 !important;
+        grid-column: span 1 !important;
+      }
+
+      /* Make just the first item slightly taller for visual interest */
+      .g-item:first-child {
+        grid-row: span 2 !important;
+      }
+
+      .g-inner {
+        min-height: 100%;
+      }
+
+      .section-title {
+        font-size: clamp(1.8rem, 7vw, 3rem);
+      }
+
+      /* LETTER */
+      #letter {
+        padding: 4rem 4vw;
+        min-height: auto;
+      }
+
+      .letter-paper {
+        padding: 3rem 1.5rem;
+      }
+
+      .letter-greeting {
+        font-size: 1.3rem;
+      }
+
+      .letter-body {
+        font-size: .92rem;
+      }
+
+      /* GIFT */
+      #gift {
+        padding: 4rem 5vw;
+        min-height: auto;
+      }
+
+      .gift-title {
+        font-size: clamp(2rem, 8vw, 3.5rem);
+      }
+
+      .gift-box {
+        width: 120px;
+        height: 120px;
+      }
+
+      /* GIFT MODAL */
+      .gift-modal {
+        padding: 2rem 1.5rem;
+      }
+
+      .gift-modal-title {
+        font-size: clamp(2rem, 8vw, 3.5rem);
+      }
+
+      .gift-modal-msg {
+        font-size: .92rem;
+      }
+
+      /* CLOSING */
+      #closing {
+        padding: 4rem 5vw;
+        min-height: auto;
+      }
+
+      .closing-main {
+        font-size: clamp(2rem, 8vw, 4rem);
+      }
+
+      /* LIGHTBOX */
+      .lightbox-close {
+        top: 1rem;
+        right: 1rem;
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="cur"></div>
+  <div id="curt"></div>
+
+  <!-- GLOBAL BG — Three.js constellation (fixed behind entire page) -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" onclick="closeLightbox()">✕ close</button>
+    <img class="lightbox-media" id="lb-img" src="" style="display:none">
+    <video class="lightbox-media" id="lb-video" controls autoplay style="display:none"></video>
+  </div>
+
+  <!-- GIFT MODAL -->
+  <div class="gift-modal" id="giftModal">
+    <h2 class="gift-modal-title" id="giftModalTitle">For You, Imole ✦</h2>
+    <p class="gift-modal-msg" id="giftModalMsg">
+      You are the light that makes everything make sense.<br>
+      On your birthday, I want you to know that every single day with you<br>
+      is a gift I don't take for granted.<br><br>
+      Happy Birthday, Maria. My Imole. My everything.
+    </p>
+    <button class="gift-modal-close" id="giftModalClose" onclick="closeGift()">✕ close</button>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">Imole</div>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#story" onclick="closeNav()">Story</a></li>
+      <li><a href="#timeline" onclick="closeNav()">Timeline</a></li>
+      <li><a href="#gallery" onclick="closeNav()">Gallery</a></li>
+      <li><a href="#letter" onclick="closeNav()">Letter</a></li>
+      <li><a href="#gift" onclick="closeNav()">Gift ✦</a></li>
+    </ul>
+    <button class="nav-burger" id="navBurger" onclick="toggleNav()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- ═══ HERO ═══ -->
+  <section id="hero">
+    <canvas id="canvas-hero"></canvas>
+    <p class="hero-top">Today we celebrate</p>
+    <p class="hero-birthday">Happy Birthday, my love</p>
+    <h1 class="hero-name">Maria</h1>
+    <p class="hero-imole">Imole — you are my light</p>
+    <p class="hero-year">✦ &nbsp; A love story written just for you &nbsp; ✦</p>
+    <div class="hero-divider"></div>
+    <p class="hero-scroll-hint">Scroll to begin our story</p>
+    <div class="scroll-bar"></div>
+    <p class="bulb-hint" id="bulbHint">Move your cursor — feel the light</p>
+  </section>
+
+  <!-- ═══ CHAPTERS ═══ -->
+  <section class="chapter" id="story">
+    <div class="chapter-media reveal" data-media-folder="chapter_1_the_day_i_found_my_light">
+      <div class="media-upload-zone">
+        <span class="uz-icon">✦</span><span class="uz-label">Awaiting Media</span>
+      </div>
+      <div class="media-glow"></div>
+    </div>
+    <div class="chapter-text reveal reveal-d1">
+      <div class="chapter-number">Chapter I</div>
+      <div class="chapter-date">Add your date</div>
+      <h2 class="chapter-title">The Day I Found My Light</h2>
+      <p class="chapter-body">Before you, I didn't know what warmth looked like from the inside. Then you walked in —
+        and suddenly I understood why the Yoruba word for light is also a name. You were not just a person. You were a
+        revelation.</p>
+    </div>
+  </section>
+
+  <section class="chapter">
+    <div class="chapter-text reveal">
+      <div class="chapter-number">Chapter II</div>
+      <div class="chapter-date">Add your date</div>
+      <h2 class="chapter-title">Learning the Way You Laugh</h2>
+      <p class="chapter-body">There's a specific way you laugh when something genuinely catches you off guard — your
+        whole face changes. I started doing things just to see it. I still do.</p>
+    </div>
+    <div class="chapter-media reveal reveal-d1" data-media-folder="chapter_2_learning_the_way_you_laugh">
+      <div class="media-upload-zone">
+        <span class="uz-icon">✦</span><span class="uz-label">Awaiting Media</span>
+      </div>
+      <div class="media-glow"></div>
+    </div>
+  </section>
+
+  <section class="chapter">
+    <div class="chapter-media reveal" data-media-folder="chapter_3_when_i_knew_for_certain">
+      <div class="media-upload-zone">
+        <span class="uz-icon">✦</span><span class="uz-label">Awaiting Media</span>
+      </div>
+      <div class="media-glow"></div>
+    </div>
+    <div class="chapter-text reveal reveal-d1">
+      <div class="chapter-number">Chapter III</div>
+      <div class="chapter-date">Add your date</div>
+      <h2 class="chapter-title">When I Knew For Certain</h2>
+      <p class="chapter-body">It wasn't a grand moment. It was quiet. You were just being yourself — effortlessly,
+        completely yourself — and I thought: this is the person I want to know for the rest of my life.</p>
+    </div>
+  </section>
+
+  <!-- ═══ TIMELINE ═══ -->
+  <section id="timeline">
+    <div class="section-header reveal">
+      <p class="section-eyebrow">Every moment matters</p>
+      <h2 class="section-title">Our Timeline</h2>
+    </div>
+    <div class="timeline-track">
+      <div class="timeline-line"></div>
+      <div class="tl-item reveal">
+        <div class="tl-content">
+          <div class="tl-date">Add date</div>
+          <div class="tl-title">The First Hello</div>
+          <div class="tl-desc">Where it all began.</div>
+        </div>
+        <div class="tl-node">
+          <div class="tl-dot"></div>
+        </div>
+        <div class="tl-empty"></div>
+      </div>
+      <div class="tl-item reveal reveal-d1">
+        <div class="tl-empty"></div>
+        <div class="tl-node">
+          <div class="tl-dot"></div>
+        </div>
+        <div class="tl-content">
+          <div class="tl-date">Add date</div>
+          <div class="tl-title">Our First Adventure</div>
+          <div class="tl-desc">I knew I wanted to go everywhere with you.</div>
+        </div>
+      </div>
+      <div class="tl-item reveal reveal-d2">
+        <div class="tl-content">
+          <div class="tl-date">Add date</div>
+          <div class="tl-title">A Day I'll Never Forget</div>
+          <div class="tl-desc">Something simple. Something ours.</div>
+        </div>
+        <div class="tl-node">
+          <div class="tl-dot"></div>
+        </div>
+        <div class="tl-empty"></div>
+      </div>
+      <div class="tl-item reveal">
+        <div class="tl-empty"></div>
+        <div class="tl-node">
+          <div class="tl-dot"
+            style="background:var(--rose);box-shadow:0 0 0 3px rgba(212,116,138,.12),0 0 18px rgba(212,116,138,.4)">
+          </div>
+        </div>
+        <div class="tl-content">
+          <div class="tl-date" style="color:var(--rose)">Today ✦</div>
+          <div class="tl-title">Your Birthday</div>
+          <div class="tl-desc">Happy Birthday, Imole. This page is proof of how much you mean to me.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ GALLERY ═══ -->
+  <section id="gallery">
+    <div class="section-header reveal">
+      <p class="section-eyebrow">All our little moments</p>
+      <h2 class="section-title">Our Gallery</h2>
+    </div>
+    <div class="gallery-grid" id="galleryGrid">
+      <div class="g-item" data-media-folder="gallery_1_a_moment_with_you" data-cap="A moment with you">
+        <div class="g-inner"><span class="g-upload-icon">✦</span><span class="g-upload-text">Awaiting</span><img
+            alt=""><video loop muted playsinline></video></div>
+        <div class="g-overlay"><span class="g-caption">A moment with you</span></div>
+        <div class="vid-badge">▶</div>
+      </div>
+      <div class="g-item" data-media-folder="gallery_2_us" data-cap="Us">
+        <div class="g-inner"><span class="g-upload-icon">✦</span><span class="g-upload-text">Awaiting</span><img
+            alt=""><video loop muted playsinline></video></div>
+        <div class="g-overlay"><span class="g-caption">Us</span></div>
+        <div class="vid-badge">▶</div>
+      </div>
+      <div class="g-item" data-media-folder="gallery_3_golden_hour" data-cap="Golden hour">
+        <div class="g-inner"><span class="g-upload-icon">✦</span><span class="g-upload-text">Awaiting</span><img
+            alt=""><video loop muted playsinline></video></div>
+        <div class="g-overlay"><span class="g-caption">Golden hour</span></div>
+        <div class="vid-badge">▶</div>
+      </div>
+      <div class="g-item" data-media-folder="gallery_4_laughing" data-cap="Laughing">
+        <div class="g-inner"><span class="g-upload-icon">✦</span><span class="g-upload-text">Awaiting</span><img
+            alt=""><video loop muted playsinline></video></div>
+        <div class="g-overlay"><span class="g-caption">Laughing</span></div>
+        <div class="vid-badge">▶</div>
+      </div>
+      <div class="g-item" data-media-folder="gallery_5_quiet_moments" data-cap="Quiet moments">
+        <div class="g-inner"><span class="g-upload-icon">✦</span><span class="g-upload-text">Awaiting</span><img
+            alt=""><video loop muted playsinline></video></div>
+        <div class="g-overlay"><span class="g-caption">Quiet moments</span></div>
+        <div class="vid-badge">▶</div>
+      </div>
+      <div class="g-item" data-media-folder="gallery_6_you" data-cap="You">
+        <div class="g-inner"><span class="g-upload-icon">✦</span><span class="g-upload-text">Awaiting</span><img
+            alt=""><video loop muted playsinline></video></div>
+        <div class="g-overlay"><span class="g-caption">You</span></div>
+        <div class="vid-badge">▶</div>
+      </div>
+      <div class="g-item" data-media-folder="gallery_7_forever" data-cap="Forever">
+        <div class="g-inner"><span class="g-upload-icon">✦</span><span class="g-upload-text">Awaiting</span><img
+            alt=""><video loop muted playsinline></video></div>
+        <div class="g-overlay"><span class="g-caption">Forever</span></div>
+        <div class="vid-badge">▶</div>
+      </div>
+      <div class="g-item" data-media-folder="gallery_8_my_light" data-cap="My light">
+        <div class="g-inner"><span class="g-upload-icon">✦</span><span class="g-upload-text">Awaiting</span><img
+            alt=""><video loop muted playsinline></video></div>
+        <div class="g-overlay"><span class="g-caption">My light</span></div>
+        <div class="vid-badge">▶</div>
+      </div>
+      <div class="g-item" data-media-folder="gallery_9_always" data-cap="Always">
+        <div class="g-inner"><span class="g-upload-icon">✦</span><span class="g-upload-text">Awaiting</span><img
+            alt=""><video loop muted playsinline></video></div>
+        <div class="g-overlay"><span class="g-caption">Always</span></div>
+        <div class="vid-badge">▶</div>
+      </div>
+      <div class="g-item" data-media-folder="gallery_10_moments" data-cap="Moments">
+        <div class="g-inner"><span class="g-upload-icon">✦</span><span class="g-upload-text">Awaiting</span><img
+            alt=""><video loop muted playsinline></video></div>
+        <div class="g-overlay"><span class="g-caption">Moments</span></div>
+        <div class="vid-badge">▶</div>
+      </div>
+      <div class="g-item" data-media-folder="gallery_11_joy" data-cap="Joy">
+        <div class="g-inner"><span class="g-upload-icon">✦</span><span class="g-upload-text">Awaiting</span><img
+            alt=""><video loop muted playsinline></video></div>
+        <div class="g-overlay"><span class="g-caption">Joy</span></div>
+        <div class="vid-badge">▶</div>
+      </div>
+      <div class="g-item" data-media-folder="gallery_12_together" data-cap="Together">
+        <div class="g-inner"><span class="g-upload-icon">✦</span><span class="g-upload-text">Awaiting</span><img
+            alt=""><video loop muted playsinline></video></div>
+        <div class="g-overlay"><span class="g-caption">Together</span></div>
+        <div class="vid-badge">▶</div>
+      </div>
+      <div class="g-item" data-media-folder="gallery_13_light" data-cap="Light">
+        <div class="g-inner"><span class="g-upload-icon">✦</span><span class="g-upload-text">Awaiting</span><img
+            alt=""><video loop muted playsinline></video></div>
+        <div class="g-overlay"><span class="g-caption">Light</span></div>
+        <div class="vid-badge">▶</div>
+      </div>
+      <div class="g-item" data-media-folder="gallery_14_glow" data-cap="Glow">
+        <div class="g-inner"><span class="g-upload-icon">✦</span><span class="g-upload-text">Awaiting</span><img
+            alt=""><video loop muted playsinline></video></div>
+        <div class="g-overlay"><span class="g-caption">Glow</span></div>
+        <div class="vid-badge">▶</div>
+      </div>
+      <div class="g-item" data-media-folder="gallery_15_forever" data-cap="Forever">
+        <div class="g-inner"><span class="g-upload-icon">✦</span><span class="g-upload-text">Awaiting</span><img
+            alt=""><video loop muted playsinline></video></div>
+        <div class="g-overlay"><span class="g-caption">Forever</span></div>
+        <div class="vid-badge">▶</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ LETTER ═══ -->
+  <section id="letter">
+    <canvas id="letter-canvas"></canvas>
+    <div class="letter-paper reveal">
+      <div class="wax-seal">♥</div>
+      <p class="letter-greeting">My dearest Maria,</p>
+      <div class="letter-body">
+        <p>They say your name means "light" in Yoruba — Imole. I want you to know that I understood this before I ever
+          knew the translation. You walk into a room and something shifts. The air changes. Some things don't translate.
+        </p>
+        <p>I have been thinking about all the days that led to this one. The small ones — mornings that felt ordinary
+          but weren't, conversations that went on longer than we planned, the way time moves differently when I'm with
+          you. You have made my life larger.</p>
+        <p>On your birthday, I want to say clearly what I don't say enough: I am grateful for you. Not just for what you
+          do — but simply that you exist. That you are here. That I get to know you.</p>
+        <p>Happy Birthday, Imole. May this year hold everything you deserve — which is everything good and beautiful and
+          warm. You are all of those things first.</p>
+      </div>
+      <p class="letter-signature">With all of my love</p>
+      <p class="letter-date">Written with intention · Always yours</p>
+    </div>
+  </section>
+
+  <!-- ═══ GIFT ═══ -->
+  <section id="gift">
+    <canvas id="gift-canvas"></canvas>
+    <p class="gift-eyebrow reveal">A surprise for you</p>
+    <h2 class="gift-title reveal">Click for a Gift ✦</h2>
+    <p class="gift-sub reveal">Something small. Something from the heart.</p>
+    <div class="gift-box-wrap reveal" id="giftBoxWrap" onclick="openGift()">
+      <div class="gift-box">
+        <svg viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20" y="70" width="120" height="80" rx="3" fill="#1a1228" stroke="#c9a96e" stroke-width="1.5" />
+          <rect x="14" y="52" width="132" height="24" rx="3" fill="#1e1530" stroke="#c9a96e" stroke-width="1.5" />
+          <rect x="73" y="52" width="14" height="98" fill="#d4748a" opacity=".7" />
+          <rect x="14" y="60" width="132" height="8" fill="#d4748a" opacity=".7" />
+          <ellipse cx="65" cy="44" rx="22" ry="12" transform="rotate(-20 65 44)" fill="#e8839a" opacity=".85" />
+          <ellipse cx="95" cy="44" rx="22" ry="12" transform="rotate(20 95 44)" fill="#e8839a" opacity=".85" />
+          <ellipse cx="80" cy="46" rx="10" ry="8" fill="#d4748a" />
+          <text x="38" y="108" font-size="14" fill="#c9a96e" opacity=".5">✦</text>
+          <text x="108" y="98" font-size="10" fill="#c9a96e" opacity=".4">✦</text>
+          <text x="88" y="130" font-size="9" fill="#e8c4b8" opacity=".35">✦</text>
+        </svg>
+      </div>
+      <p class="gift-click-hint">Click to open ✦</p>
+    </div>
+  </section>
+
+  <!-- ═══ CLOSING ═══ -->
+  <section id="closing">
+    <p class="closing-pre">Happy Birthday</p>
+    <h2 class="closing-main">Here's to forever,<br>my Imole</h2>
+    <p class="closing-sub">You are loved · You are light · You are everything</p>
+    <button class="celebrate-btn" onclick="celebrate()">✦ Celebrate ✦</button>
+  </section>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    if (window.matchMedia('(hover:none)').matches) {
+      const h = document.getElementById('bulbHint');
+      if (h) h.textContent = 'Touch & move — feel the light';
+    }
+
+    /* ── CURSOR ── */
+    const cur = document.getElementById('cur'), curt = document.getElementById('curt');
+    document.addEventListener('mousemove', e => {
+      cur.style.left = e.clientX + 'px'; cur.style.top = e.clientY + 'px';
+      setTimeout(() => { curt.style.left = e.clientX + 'px'; curt.style.top = e.clientY + 'px'; }, 90);
+    });
+    document.addEventListener('click', e => spawnHeart(e.clientX, e.clientY));
+    function spawnHeart(x, y) {
+      const h = document.createElement('div'); h.className = 'heart-float';
+      h.textContent = ['♥', '✦', '✿'][Math.floor(Math.random() * 3)];
+      h.style.left = x + 'px'; h.style.top = y + 'px';
+      document.body.appendChild(h); setTimeout(() => h.remove(), 2000);
+    }
+
+    /* ── NAV ── */
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        const t = document.querySelector(a.getAttribute('href'));
+        if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+    function toggleNav() {
+      document.getElementById('navLinks').classList.toggle('open');
+      document.getElementById('navBurger').classList.toggle('open');
+    }
+    function closeNav() {
+      document.getElementById('navLinks').classList.remove('open');
+      document.getElementById('navBurger').classList.remove('open');
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       1. GLOBAL BACKGROUND — Three.js flowing star constellation
+       ─ Fixed behind entire page, always visible as you scroll
+       ─ Stars drift slowly; close ones connect with gold lines (2D)
+       ─ Reacts to scroll: stars parallax at different depths
+       ─ Reacts to mouse: nearest stars get pulled gently toward cursor
+    ═══════════════════════════════════════════════════════════════ */
+    (function initGlobalBg() {
+      const canvas = document.getElementById('bg-canvas');
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.setClearColor(0x07061a, 1);
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.OrthographicCamera(0, innerWidth, innerHeight, 0, -1, 1);
+
+      /* ─ Star data ─ */
+      const N = window.innerWidth < 600 ? 100 : 180;
+      const stars = Array.from({ length: N }, (_, i) => ({
+        x: Math.random() * innerWidth,
+        y: Math.random() * innerHeight,
+        vx: (Math.random() - .5) * .22,
+        vy: (Math.random() - .5) * .22,
+        depth: Math.random(),         // parallax speed 0=slow, 1=fast
+        pulse: Math.random() * Math.PI * 2, // phase offset for twinkle
+        size: Math.random() * 1.2 + .3,
+      }));
+
+      /* Three.js points for stars */
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(N * 3);
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+
+      const starMat = new THREE.ShaderMaterial({
+        uniforms: { time: { value: 0 } },
+        vertexShader: `
+      attribute float size;
+      attribute float phase;
+      uniform float time;
+      varying float vA;
+      void main(){
+        vA = 0.45 + 0.3*sin(time*1.4 + phase);
+        gl_PointSize = size * (1.0 + 0.25*sin(time*2.1 + phase));
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+        fragmentShader: `
+      varying float vA;
+      void main(){
+        float d = distance(gl_PointCoord, vec2(.5));
+        if(d > .5) discard;
+        float a = (1.0 - smoothstep(.05, .5, d)) * vA;
+        gl_FragColor = vec4(0.98, 0.88, 0.55, a);
+      }
+    `,
+        transparent: true, depthWrite: false,
+      });
+
+      /* Add per-star attributes */
+      const sizes = new Float32Array(N);
+      const phases = new Float32Array(N);
+      stars.forEach((s, i) => { sizes[i] = s.size * 2.5; phases[i] = s.pulse; });
+      geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+      geo.setAttribute('phase', new THREE.BufferAttribute(phases, 1));
+
+      scene.add(new THREE.Points(geo, starMat));
+
+      /* ─ 2D canvas for gold connection lines (cheaper than Three geometry) ─ */
+      const lineC = document.createElement('canvas');
+      lineC.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;';
+      document.body.insertBefore(lineC, document.body.firstChild);
+      const lctx = lineC.getContext('2d');
+
+      function resizeBg() {
+        renderer.setSize(innerWidth, innerHeight);
+        lineC.width = innerWidth; lineC.height = innerHeight;
+        camera.right = innerWidth; camera.top = innerHeight;
+        camera.updateProjectionMatrix();
+      }
+      resizeBg();
+      window.addEventListener('resize', resizeBg);
+
+      /* Mouse influence */
+      let mx = innerWidth / 2, my = innerHeight / 2;
+      document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+      document.addEventListener('touchmove', e => {
+        mx = e.touches[0].clientX; my = e.touches[0].clientY;
+      }, { passive: true });
+
+      let scrollY = 0;
+      window.addEventListener('scroll', () => { scrollY = window.scrollY; }, { passive: true });
+
+      const LINK = 160; // max distance for golden lightning connections
+      let bgT = 0;
+
+      (function tickBg() {
+        requestAnimationFrame(tickBg);
+        bgT += 0.01;
+        starMat.uniforms.time.value = bgT;
+
+        const W = innerWidth, H = innerHeight;
+        const pa = geo.attributes.position.array;
+
+        /* Update star positions */
+        stars.forEach((s, i) => {
+          /* Gentle organic drift */
+          s.x += s.vx + Math.sin(bgT * .35 + i * .8) * .04;
+          s.y += s.vy + Math.cos(bgT * .28 + i * .6) * .04;
+
+          /* Subtle mouse attraction (stronger for near-surface stars) */
+          const dx = mx - s.x, dy = my - s.y;
+          const md = Math.sqrt(dx * dx + dy * dy);
+          if (md < 180) {
+            s.x += (dx / md) * .18 * s.depth;
+            s.y += (dy / md) * .18 * s.depth;
+          }
+
+          /* Wrap edges */
+          if (s.x < -20) s.x = W + 20;
+          if (s.x > W + 20) s.x = -20;
+          if (s.y < -20) s.y = H + 20;
+          if (s.y > H + 20) s.y = -20;
+
+          /* Parallax with scroll — deeper stars move less */
+          const py = (s.depth * scrollY * .12) % (H + 40);
+
+          pa[i * 3] = s.x;
+          pa[i * 3 + 1] = s.y + py;
+          pa[i * 3 + 2] = 0;
+        });
+        geo.attributes.position.needsUpdate = true;
+
+        /* Draw golden lightning streaks on 2D canvas */
+        lctx.clearRect(0, 0, W, H);
+
+        for (let i = 0; i < N; i++) {
+          for (let j = i + 1; j < N; j++) {
+            const dx = stars[i].x - stars[j].x;
+            const dy = stars[i].y - stars[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < LINK) {
+              const t = 1 - dist / LINK;
+              const alpha = t * t * 0.7; // power curve for sharper falloff
+
+              /* Outer glow layer — wide soft gold halo */
+              lctx.beginPath();
+              lctx.moveTo(stars[i].x, stars[i].y);
+              lctx.lineTo(stars[j].x, stars[j].y);
+              lctx.strokeStyle = `rgba(201,150,50,${(alpha * 0.18).toFixed(3)})`;
+              lctx.lineWidth = 3.5;
+              lctx.stroke();
+
+              /* Mid glow layer */
+              lctx.beginPath();
+              lctx.moveTo(stars[i].x, stars[i].y);
+              lctx.lineTo(stars[j].x, stars[j].y);
+              lctx.strokeStyle = `rgba(230,185,80,${(alpha * 0.38).toFixed(3)})`;
+              lctx.lineWidth = 1.4;
+              lctx.stroke();
+
+              /* Core bright lightning thread */
+              lctx.beginPath();
+              lctx.moveTo(stars[i].x, stars[i].y);
+              lctx.lineTo(stars[j].x, stars[j].y);
+              lctx.strokeStyle = `rgba(255,225,140,${(alpha * 0.72).toFixed(3)})`;
+              lctx.lineWidth = 0.5;
+              lctx.stroke();
+            }
+          }
+        }
+        /* Star node glow halos */
+        stars.forEach(s => {
+          const g = lctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.size * 5 + 3);
+          g.addColorStop(0, `rgba(255,230,130,0.18)`);
+          g.addColorStop(1, `rgba(201,150,50,0)`);
+          lctx.beginPath();
+          lctx.arc(s.x, s.y, s.size * 5 + 3, 0, Math.PI * 2);
+          lctx.fillStyle = g;
+          lctx.fill();
+        });
+
+        renderer.render(scene, camera);
+      })();
+    })();
+
+    /* ═══════════════════════════════════════════════════════════════
+       2. HERO BULB — Three.js shader scoped inside hero section
+       ─ Desktop: golden filament follows cursor
+       ─ Hover "Maria": dramatic bloom
+       ─ Mobile: auto-drifts + responds to touch
+    ═══════════════════════════════════════════════════════════════ */
+    (function initHeroBulb() {
+      const canvas = document.getElementById('canvas-hero');
+      const heroEl = document.getElementById('hero');
+      const isMobile = () => window.matchMedia('(hover:none)').matches;
+
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false, premultipliedAlpha: false });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+      renderer.setClearColor(0x000000, 0);
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+      const U = {
+        time: { value: 0 },
+        resolution: { value: new THREE.Vector2() },
+        mouse: { value: new THREE.Vector2(.5, .5) },
+        intensity: { value: 0 },
+      };
+
+      const mat = new THREE.ShaderMaterial({
+        uniforms: U,
+        vertexShader: `void main(){ gl_Position = vec4(position, 1.0); }`,
+        fragmentShader: `
+      precision mediump float;
+      uniform vec2  resolution, mouse;
+      uniform float time, intensity;
+      void main(){
+        vec2 uv  = gl_FragCoord.xy / resolution;
+        float ar = resolution.x / resolution.y;
+        /* True circular distance — correct aspect ratio */
+        vec2 delta = (uv - mouse) * vec2(ar, 1.0);
+        float d = length(delta);
+        /* Ambient soft fill so non-hovered areas are not pitch black */
+        float ambient = 0.055;
+        vec3 col = vec3(0.028, 0.022, 0.068) * (1.0 + ambient);
+        /* Outer halo — wide cool-blue fluorescent bloom */
+        col += vec3(0.45, 0.62, 1.0) * exp(-d*d*(1.2-intensity*0.8)) * 0.10;
+        /* Mid glow — bright white with soft blue */
+        col += vec3(0.82, 0.92, 1.0) * exp(-d*d*(7.0-intensity*4.5)) * (0.38+intensity*0.52);
+        /* Core — tight, circular, pure white */
+        col += vec3(1.0, 0.98, 1.0) * exp(-d*d*160.0) * (0.70+intensity*0.40);
+        /* Subtle fluorescent flicker */
+        col *= 1.0 + 0.006*sin(time*58.0)*sin(time*43.0+1.7);
+        /* No vignette squish — keep fully circular */
+        float alpha = min(1.0, length(col) * 1.4);
+        gl_FragColor = vec4(clamp(col,0.,1.), alpha);
+      }
+    `,
+      });
+      scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat));
+
+      function resizeHero() {
+        const w = heroEl.clientWidth, h = heroEl.clientHeight;
+        renderer.setSize(w, h); U.resolution.value.set(w, h);
+      }
+      resizeHero();
+      window.addEventListener('resize', resizeHero);
+
+      let tMX = .5, tMY = .5, tInt = 0, touching = false, autoT = 0, t = 0;
+
+      heroEl.addEventListener('mousemove', e => {
+        const r = heroEl.getBoundingClientRect();
+        tMX = (e.clientX - r.left) / r.width;
+        tMY = 1 - (e.clientY - r.top) / r.height;
+      });
+      document.querySelector('.hero-name').addEventListener('mouseenter', () => tInt = 1);
+      document.querySelector('.hero-name').addEventListener('mouseleave', () => tInt = 0);
+
+      heroEl.addEventListener('touchstart', e => {
+        touching = true;
+        const r = heroEl.getBoundingClientRect(), t0 = e.touches[0];
+        tMX = (t0.clientX - r.left) / r.width;
+        tMY = 1 - (t0.clientY - r.top) / r.height; tInt = .65;
+      }, { passive: true });
+      heroEl.addEventListener('touchmove', e => {
+        const r = heroEl.getBoundingClientRect(), t0 = e.touches[0];
+        tMX = (t0.clientX - r.left) / r.width;
+        tMY = 1 - (t0.clientY - r.top) / r.height; tInt = .65;
+      }, { passive: true });
+      heroEl.addEventListener('touchend', () => { touching = false; tInt = 0; });
+
+      (function tick() {
+        requestAnimationFrame(tick);
+        t += .016; U.time.value = t;
+        if (isMobile() && !touching) {
+          autoT += .003;
+          tMX = .5 + Math.sin(autoT * .7) * .27;
+          tMY = .52 + Math.cos(autoT * .5) * .19;
+          tInt = .22 + Math.sin(autoT * .4) * .11;
+        }
+        U.mouse.value.x += (tMX - U.mouse.value.x) * .055;
+        U.mouse.value.y += (tMY - U.mouse.value.y) * .055;
+        U.intensity.value += (tInt - U.intensity.value) * .045;
+        renderer.render(scene, camera);
+      })();
+    })();
+
+    /* ═══════════════════════════════════════════════════════════════
+       3. LETTER BG — Canvas2D drifting ink particles
+    ═══════════════════════════════════════════════════════════════ */
+    (function initLetterBg() {
+      const el = document.getElementById('letter-canvas');
+      const sec = document.getElementById('letter');
+      function resize() { el.width = sec.clientWidth; el.height = sec.clientHeight || 700; }
+      resize();
+      const ctx = el.getContext('2d');
+      const pts = Array.from({ length: 45 }, () => ({
+        x: Math.random() * el.width, y: Math.random() * el.height,
+        vx: (Math.random() - .5) * .14, vy: -(Math.random() * .18 + .04),
+        a: Math.random() * .13 + .03, r: Math.random() * 1.5 + .4,
+        c: Math.random() > .5 ? '#c9a96e' : '#d4748a',
+      }));
+      (function draw() {
+        ctx.clearRect(0, 0, el.width, el.height);
+        pts.forEach(p => {
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = p.c; ctx.globalAlpha = p.a; ctx.fill();
+          p.x += p.vx; p.y += p.vy;
+          if (p.y < -10) { p.y = el.height + 10; p.x = Math.random() * el.width; }
+        });
+        ctx.globalAlpha = 1; requestAnimationFrame(draw);
+      })();
+      window.addEventListener('resize', resize);
+    })();
+
+    /* ═══════════════════════════════════════════════════════════════
+       4. GIFT BG — subtle drifting particles, consistent with page bg
+    ═══════════════════════════════════════════════════════════════ */
+    (function initGiftBg() {
+      const canvas = document.getElementById('gift-canvas');
+      const giftSec = document.getElementById('gift');
+      const ctx = canvas.getContext('2d');
+      const NG = 55;
+      let gW, gH;
+      const pts = Array.from({ length: NG }, () => ({
+        x: Math.random(), y: Math.random(),
+        vx: (Math.random() - .5) * .0003,
+        vy: (Math.random() - .5) * .0003,
+        size: Math.random() * 1.4 + .4,
+        phase: Math.random() * Math.PI * 2,
+        depth: Math.random(),
+      }));
+      function resize() {
+        gW = giftSec.clientWidth; gH = giftSec.clientHeight || 600;
+        canvas.width = gW; canvas.height = gH;
+      }
+      resize(); window.addEventListener('resize', resize);
+      let hA = 1, bT = 0, gt = 0;
+      const wrap = document.getElementById('giftBoxWrap');
+      wrap.addEventListener('mouseenter', () => hA = 1.8);
+      wrap.addEventListener('mouseleave', () => hA = 1);
+      wrap.addEventListener('touchstart', () => { hA = 1.8; setTimeout(() => hA = 1, 1200); }, { passive: true });
+      window._giftBurst = () => { bT = 1.2; hA = 4; setTimeout(() => hA = 1, 1400); };
+      /* sparse connection lines between nearby gift particles */
+      const GLINK = 0.18; // fraction of width
+      (function tick() {
+        requestAnimationFrame(tick); gt += .008;
+        ctx.clearRect(0, 0, gW, gH);
+        const absLink = GLINK * Math.min(gW, gH);
+        /* Update positions */
+        pts.forEach((p, i) => {
+          p.x += p.vx * hA;
+          p.y += p.vy * hA;
+          if (p.x < 0) p.x = 1; if (p.x > 1) p.x = 0;
+          if (p.y < 0) p.y = 1; if (p.y > 1) p.y = 0;
+        });
+        /* Draw lines first */
+        for (let i = 0; i < NG; i++) {
+          for (let j = i + 1; j < NG; j++) {
+            const dx = (pts[i].x - pts[j].x) * gW;
+            const dy = (pts[i].y - pts[j].y) * gH;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < absLink) {
+              const t = 1 - dist / absLink;
+              const a = t * t * 0.22 * (1 + bT * 0.4);
+              ctx.beginPath();
+              ctx.moveTo(pts[i].x * gW, pts[i].y * gH);
+              ctx.lineTo(pts[j].x * gW, pts[j].y * gH);
+              ctx.strokeStyle = `rgba(201,160,70,${a.toFixed(3)})`;
+              ctx.lineWidth = 0.7;
+              ctx.stroke();
+            }
+          }
+        }
+        /* Draw star nodes */
+        pts.forEach((p, i) => {
+          const twinkle = 0.35 + 0.18 * Math.sin(gt * 1.5 + p.phase);
+          const a = twinkle * (1 + bT * 0.5);
+          ctx.beginPath();
+          ctx.arc(p.x * gW, p.y * gH, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(220,185,100,${Math.min(a, 0.85).toFixed(3)})`;
+          ctx.fill();
+        });
+        bT *= 0.94;
+      })();
+    })();
+
+    /* ═══════════════════════════════════════════════════════════════
+       GSAP — Hero entrance
+    ═══════════════════════════════════════════════════════════════ */
+    gsap.set(['.hero-top', '.hero-birthday', '.hero-name', '.hero-imole', '.hero-year', '.hero-scroll-hint'], { opacity: 0, y: 30 });
+    gsap.set('.hero-divider', { opacity: 0 });
+    gsap.timeline({ delay: .4 })
+      .to('.hero-top', { opacity: 1, y: 0, duration: .9, ease: 'power3.out' }, 0)
+      .to('.hero-birthday', { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }, .3)
+      .to('.hero-name', { opacity: 1, y: 0, duration: 1.3, ease: 'power3.out' }, .55)
+      .to('.hero-imole', { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }, 1)
+      .to('.hero-year', { opacity: 1, y: 0, duration: .9, ease: 'power3.out' }, 1.35)
+      .to('.hero-divider', { opacity: 1, duration: .8, ease: 'power2.out' }, 1.7)
+      .to('.hero-scroll-hint', { opacity: 1, y: 0, duration: .8, ease: 'power2.out' }, 1.9);
+
+    /* ═══════════════════════════════════════════════════════════════
+       GSAP — Scroll reveals (generic)
+    ═══════════════════════════════════════════════════════════════ */
+    document.querySelectorAll('.reveal').forEach(el => {
+      ScrollTrigger.create({
+        trigger: el, start: 'top 88%',
+        onEnter: () => el.classList.add('visible'),
+      });
+    });
+
+    /* ═══════════════════════════════════════════════════════════════
+       GSAP — Chapter parallax (desktop only, avoids mobile weirdness)
+    ═══════════════════════════════════════════════════════════════ */
+    if (!window.matchMedia('(hover:none)').matches) {
+      document.querySelectorAll('.chapter-media').forEach(el => {
+        gsap.to(el, {
+          y: -40, ease: 'none',
+          scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 1.2 }
+        });
+      });
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       GSAP — Timeline line draw
+    ═══════════════════════════════════════════════════════════════ */
+    gsap.fromTo('.timeline-line',
+      { scaleY: 0, transformOrigin: 'top center' },
+      {
+        scaleY: 1, duration: 2, ease: 'power2.out',
+        scrollTrigger: { trigger: '#timeline', start: 'top 70%' }
+      }
+    );
+
+    /* Timeline items slide in from sides */
+    ScrollTrigger.create({
+      trigger: '.timeline-track', start: 'top 78%',
+      onEnter: () => {
+        gsap.fromTo('.tl-item',
+          { opacity: 0, x: (i) => i % 2 === 0 ? -30 : 30 },
+          { opacity: 1, x: 0, duration: .85, ease: 'power3.out', stagger: .18 }
+        );
+      }
+    });
+
+    /* ═══════════════════════════════════════════════════════════════
+       GSAP — Gallery items — each card pops in on scroll with stagger
+    ═══════════════════════════════════════════════════════════════ */
+    ScrollTrigger.create({
+      trigger: '#galleryGrid', start: 'top 82%',
+      onEnter: () => {
+        gsap.fromTo('.g-item',
+          { opacity: 0, y: 28, scale: .94 },
+          { opacity: 1, y: 0, scale: 1, duration: .65, ease: 'power3.out', stagger: .07 }
+        );
+      }
+    });
+
+    /* ═══════════════════════════════════════════════════════════════
+       GSAP — Letter paper
+    ═══════════════════════════════════════════════════════════════ */
+    gsap.fromTo('.letter-paper',
+      { opacity: 0, scale: .95, y: 45 },
+      {
+        opacity: 1, scale: 1, y: 0, duration: 1.4, ease: 'power3.out',
+        scrollTrigger: { trigger: '.letter-paper', start: 'top 80%' }
+      }
+    );
+
+    /* ═══════════════════════════════════════════════════════════════
+       MEDIA — Auto-loader from local folder map
+    ═══════════════════════════════════════════════════════════════ */
+    const folderMediaMap = {
+      'chapter_1_the_day_i_found_my_light': 'IMG-20250217-WA0043.jpg',
+      'chapter_2_learning_the_way_you_laugh': 'WhatsApp Image 2025-04-11 at 00.23.53_5bb9ec6b.jpg',
+      'chapter_3_when_i_knew_for_certain': 'WhatsApp Image 2025-04-11 at 00.23.58_b1c7ad82.jpg',
+      'gallery_1_a_moment_with_you': 'B53BAB5B-72B9-4142-B76A-950154D8BB3E.MP4',
+      'gallery_2_us': 'E15338DA-63F5-4712-B8B1-02D8703AD5CC.MP4',
+      'gallery_3_golden_hour': 'my_light_furnace.jpg',
+      'gallery_4_laughing': '3F30ECD1-CD45-4DAC-A291-854D1C89551D.MP4',
+      'gallery_5_quiet_moments': 'IMG-20250211-WA0041.jpg',
+      'gallery_6_you': 'IMG-20250411-WA0016.jpg',
+      'gallery_7_forever': '3E8DCA61-92D5-465E-B866-6AD4652D9B18.MP4',
+      'gallery_8_my_light': 'C2319119-762F-4CE7-98B9-6C551448E1FA.MP4',
+      'gallery_9_always': 'VID-20250426-WA0006.mp4',
+      'gallery_10_moments': '2FBF1B86-4542-437B-9F34-E3E93A1DC991.MP4',
+      'gallery_11_joy': '057C81D5-4D1E-43F2-8A30-6822284FC955.MP4',
+      'gallery_12_together': '2C53CE7B-A6A0-422D-8B5C-B8FF7FB35657.MP4',
+      'gallery_13_light': 'F943363A-DE70-46D6-951E-BFA41DE7F36D.MP4',
+      'gallery_14_glow': 'BF48AD1C-1425-4734-B16F-2FD6D7F36E2A.MP4',
+      'gallery_15_forever': '799E1331-054D-460F-B56A-35889CCBA85F.MP4',
+    };
+
+    function createAutoMediaLoader(selector) {
+      document.querySelectorAll(selector).forEach(container => {
+        const folder = container.getAttribute('data-media-folder');
+        if (!folder || !folderMediaMap[folder]) return;
+        const fileName = folderMediaMap[folder];
+        const isVid = /\.(mp4|mov|webm)$/i.test(fileName);
+        const filePath = `https://res.cloudinary.com/dey2bqr6r/${isVid ? 'video' : 'image'}/upload/hbd/${encodeURIComponent(fileName)}`;
+        const placeholder = container.querySelector('.media-upload-zone') || container.querySelector('.g-inner');
+        const badge = container.querySelector('.vid-badge');
+        const el = document.createElement(isVid ? 'video' : 'img');
+        const onSuccess = () => {
+          if (placeholder) placeholder.style.display = 'none';
+          el.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:1;';
+          container.insertBefore(el, container.firstChild);
+          if (isVid) {
+            el.muted = true; el.loop = true; el.playsInline = true;
+            if (badge) badge.style.display = 'flex';
+            container.addEventListener('mouseenter', () => el.play().catch(() => { }));
+            container.addEventListener('mouseleave', () => el.pause());
+          }
+          gsap.from(el, { scale: .85, opacity: 0, duration: .8, ease: 'back.out(1.4)' });
+          container.addEventListener('click', e => { e.stopPropagation(); openLightbox(isVid ? 'video' : 'img', el.src); });
+        };
+        if (isVid) { el.onloadeddata = onSuccess; } else { el.onload = onSuccess; }
+        el.src = filePath;
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      createAutoMediaLoader('.chapter-media');
+      createAutoMediaLoader('.g-item');
+    });
+
+    /* ═══════════════════════════════════════════════════════════════
+       LIGHTBOX
+    ═══════════════════════════════════════════════════════════════ */
+    function openLightbox(type, src) {
+      const lb = document.getElementById('lightbox');
+      const img = document.getElementById('lb-img');
+      const vid = document.getElementById('lb-video');
+      if (type === 'img') { img.src = src; img.style.display = 'block'; vid.style.display = 'none'; }
+      else { vid.src = src; vid.style.display = 'block'; img.style.display = 'none'; }
+      lb.classList.add('open');
+      gsap.from(type === 'img' ? img : vid, { scale: .9, opacity: 0, duration: .5, ease: 'power3.out' });
+    }
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('open');
+      document.getElementById('lb-video').pause();
+    }
+    document.getElementById('lightbox').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeLightbox();
+    });
+
+    /* ═══════════════════════════════════════════════════════════════
+       GIFT
+    ═══════════════════════════════════════════════════════════════ */
+    function openGift() {
+      if (window._giftBurst) window._giftBurst();
+      confettiBurst(70);
+      const modal = document.getElementById('giftModal');
+      modal.classList.add('open');
+      gsap.set(['#giftModalTitle', '#giftModalMsg', '#giftModalClose'], { opacity: 0, y: 26 });
+      gsap.to('#giftModalTitle', { opacity: 1, y: 0, duration: .9, ease: 'power3.out', delay: .1 });
+      gsap.to('#giftModalMsg', { opacity: 1, y: 0, duration: .9, ease: 'power3.out', delay: .4 });
+      gsap.to('#giftModalClose', { opacity: 1, y: 0, duration: .9, ease: 'power3.out', delay: .7 });
+    }
+    function closeGift() {
+      gsap.to('#giftModal', {
+        opacity: 0, duration: .4, ease: 'power2.in', onComplete: () => {
+          document.getElementById('giftModal').classList.remove('open');
+          gsap.set('#giftModal', { opacity: 1 });
+        }
+      });
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       CONFETTI + CELEBRATE
+    ═══════════════════════════════════════════════════════════════ */
+    function confettiBurst(count) {
+      const cols = ['#c9a96e', '#e8c4b8', '#d4748a', '#f5f0eb', '#ff6b8a', '#fff'];
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          const p = document.createElement('div'); p.className = 'confetti-piece';
+          p.style.cssText = `left:${Math.random() * 100}vw;top:-20px;
+        background:${cols[Math.floor(Math.random() * cols.length)]};
+        width:${Math.random() * 7 + 3}px;height:${Math.random() * 7 + 3}px;
+        border-radius:${Math.random() > .5 ? '50%' : '2px'};
+        animation-duration:${Math.random() * 2 + 2}s;animation-delay:${Math.random() * .4}s;`;
+          document.body.appendChild(p); setTimeout(() => p.remove(), 4200);
+        }, i * 18);
+      }
+    }
+    function celebrate() {
+      confettiBurst(140);
+      for (let i = 0; i < 28; i++) setTimeout(() =>
+        spawnHeart(innerWidth / 2 + (Math.random() - .5) * 440, innerHeight / 2 + (Math.random() - .5) * 260)
+        , i * 65);
+    }
+  </script>
+</body>
+
+</html>
